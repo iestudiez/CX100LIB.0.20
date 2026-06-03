@@ -222,6 +222,7 @@ void listBox_Draw(GUI_ListBox_t *listBox)
 		GLCD_DrawText(stringToDisplay, LEFT_JUSTIFICATION, itemYPos, Font_System1, 0, 1);
 
 		// Draw values
+		GUI_InputBox_UpdateValue(&listBox->item[ix + listBox->priv.offset]);
 		stringToDisplay = listBox->item[ix + listBox->priv.offset].priv.txtValue;
 		valueXPos = RIGHT_JUSTIFICATION - GLCD_TextWidth(stringToDisplay, Font_System1, 0);
 		GLCD_DrawText(stringToDisplay, valueXPos, itemYPos, Font_System1, 0, 1);

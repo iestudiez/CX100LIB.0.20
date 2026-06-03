@@ -34,7 +34,8 @@ typedef struct CharSettings_t
 
 // Private prototypes
 // -----------------------------------------------------------------------------
-TextBox_t GLCD_DrawChar(CharSettings_t c, const unsigned char *font);
+TextBox_t
+GLCD_DrawChar(CharSettings_t c, const unsigned char *font);
 
 /**
  * ----------------------------------------------------------------------------
@@ -79,7 +80,8 @@ uint8_t GLCD_TextWidth(char *string, const unsigned char *font, uint8_t spacing)
  * @return				Text box dimensions
  *  -----------------------------------------------------------------------------
  */
-TextBox_t GLCD_DrawText(const char *string, uint8_t x, uint8_t y, const unsigned char *font, uint8_t spacing, bool color)
+TextBox_t GLCD_DrawText(const char *string, uint8_t x, uint8_t y, const unsigned char *font, uint8_t spacing,
+		bool color)
 {
 	TextBox_t ret;
 	TextBox_t tmp;
@@ -306,7 +308,7 @@ void GLCD_PutBitmap(uint8_t x, uint8_t y, const unsigned char bitmap[], bool mod
 
 	// Clear the bitmap print area
 	if (mode)
-		GLCD_DrawBox(x, y, x + width, y + height, 0);
+		GLCD_DrawBox(x, y, x + width - 1, y + height, 0);
 
 	// Draw bitmap from left to right
 	for (ix = 0; ix < width; ix++)
@@ -323,7 +325,8 @@ void GLCD_PutBitmap(uint8_t x, uint8_t y, const unsigned char bitmap[], bool mod
 
 		// Draw a column of the bitmap (top to bottom)
 		for (ipage = 0; ipage <= (bitmapPages + startPage); ipage++)
-			LCD_Byte((uint8_t) (buffer >> (ipage * 8)), x + ix, ipage, LCD_WRITE_MODE_OR);
+			LCD_Byte((uint8_t) (buffer >> (ipage * 8)), x + ix, ipage,
+			LCD_WRITE_MODE_OR);
 	}
 }
 
@@ -462,13 +465,16 @@ void GLCD_DrawBox(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, BoxType_e boxT
 			switch (boxType)
 			{
 			case GLCD_BOXTYPE_WHITE:
-				LCD_Byte((uint8_t) (buffer >> (ipage * 8)), x1 + ix, ipage, LCD_WRITE_MODE_AND);
+				LCD_Byte((uint8_t) (buffer >> (ipage * 8)), x1 + ix, ipage,
+				LCD_WRITE_MODE_AND);
 				break;
 			case GLCD_BOXTYPE_BLACK:
-				LCD_Byte((uint8_t) (buffer >> (ipage * 8)), x1 + ix, ipage, LCD_WRITE_MODE_OR);
+				LCD_Byte((uint8_t) (buffer >> (ipage * 8)), x1 + ix, ipage,
+				LCD_WRITE_MODE_OR);
 				break;
 			case GLCD_BOXTYPE_REVERSE:
-				LCD_Byte((uint8_t) (buffer >> (ipage * 8)), x1 + ix, ipage, LCD_WRITE_MODE_XOR);
+				LCD_Byte((uint8_t) (buffer >> (ipage * 8)), x1 + ix, ipage,
+				LCD_WRITE_MODE_XOR);
 				break;
 			}
 	}
@@ -499,8 +505,9 @@ void GLCD_ProgressBar(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_t va
 	if (x2 >= LCD_SCREEN_WIDTH)
 		x2 = LCD_SCREEN_WIDTH;
 
-	len = x2 - x1;
+	len = (x2 - x1) + 1;
 
+	// Calculating the progress bar percentage
 	barValue = (uint8_t) ((uint32_t) ((value * len) / 100));
 
 	GLCD_DrawBox(x1, y1, barValue + x1, y2, 2);
@@ -555,19 +562,19 @@ void GLCD_DrawLine(int x1, int y1, int x2, int y2, bool color)
 		yinc2 = -1;
 	}
 
-	if (deltax >= deltay)     		// There is at least one x-value for every y-value
+	if (deltax >= deltay)     // There is at least one x-value for every y-value
 	{
-		xinc1 = 0;              	// Don't change the x when numerator >= denominator
+		xinc1 = 0;           // Don't change the x when numerator >= denominator
 		yinc2 = 0;              	// Don't change the y for every iteration
 		den = deltax;
 		num = deltax / 2;
 		numadd = deltay;
 		numpixels = deltax;     	// There are more x-values than y-values
 	}
-	else                      		// There is at least one y-value for every x-value
+	else                    // There is at least one y-value for every x-value
 	{
 		xinc2 = 0;              	// Don't change the x for every iteration
-		yinc1 = 0;              	// Don't change the y when numerator >= denominator
+		yinc1 = 0;           // Don't change the y when numerator >= denominator
 		den = deltay;
 		num = deltay / 2;
 		numadd = deltax;
@@ -577,7 +584,7 @@ void GLCD_DrawLine(int x1, int y1, int x2, int y2, bool color)
 	for (curpixel = 0; curpixel <= numpixels; curpixel++)
 	{
 		LCD_Pixel(x, y, color);    	// Draw the current pixel
-		num += numadd;          	// Increase the numerator by the top of the fraction
+		num += numadd;      // Increase the numerator by the top of the fraction
 		if (num >= den)         	// Check if numerator >= denominator
 		{
 			num -= den;           	// Calculate the new numerator value

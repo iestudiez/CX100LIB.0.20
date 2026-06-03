@@ -19,6 +19,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 
 // Private definitions
 // -----------------------------------------------------------------------------
@@ -42,7 +43,7 @@ char GNSS_Frame[UART_RX_BUFFER_SIZE];
 void GNSS_FrameBuilder(void);
 void GNSS_RmcUpdate(void);
 void GNSS_SendCommand(char *msg);
-bool GNSS_Checksum(char *gnssFrame);
+uint8_t GNSS_Checksum(const char *sGnssFrame);
 #ifndef GNSS_ONLY_RMC_MESSAGES
 void GNSS_VtgUpdate(void);
 void GNSS_GgaUpdate(void);
@@ -393,42 +394,17 @@ void GNSS_SendCommand(char *msg)
  * @return
  * -----------------------------------------------------------------------------
  */
-bool GNSS_Checksum(char *gnssFrame)
+uint8_t GNSS_Checksum(const char *sGnssFrame)
 {
-	uint8_t len;
 	uint8_t checksum = 0;
-	uint8_t nibble1;
-	uint8_t nibble2;
 
-	char charNibble1;
-	char charNibble2;
+	assert(sGnssFrame);
 
-	len = strlen(gnssFrame);
+	// Start at index 1 to skip the leading '$'
+	for (uint16_t i = 1; (sGnssFrame[i] != '*') && (sGnssFrame[i] != '\0'); i++)
+		checksum ^= (uint8_t) sGnssFrame[i];
 
-	for (uint8_t i = 1; i < len - 5; i++)
-		checksum = checksum ^ gnssFrame[i];
-
-	nibble1 = (checksum & 0xF0) >> 4;
-	nibble2 = checksum & 0x0F;
-
-	// Convert high nibble to the ASCII representation of itself
-	// ---------------------------------------------------------
-	if (nibble1 <= 0x09)
-		charNibble1 = nibble1 + '0';
-	else
-		charNibble1 = nibble1 + 'A';
-
-	// Convert low nibble to the ASCII representation of itself
-	// --------------------------------------------------------
-	if (nibble2 <= 0x09)
-		charNibble2 = nibble2 + '0';
-	else
-		charNibble2 = nibble2 + 'A';
-
-	if ((charNibble1 == gnssFrame[len - 4]) && (charNibble2 == gnssFrame[len - 3]))
-		return true;
-	else
-		return false;
+	return checksum;
 }
 
 /**

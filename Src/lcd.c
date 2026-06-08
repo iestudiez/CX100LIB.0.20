@@ -184,7 +184,7 @@ void LCD_SetColumn(uint8_t cAdr)
 void LCD_Init(void)
 {
 	LCD_Reset(true);
-	SYSTEM_Delay(4000);
+	SYSTEM_DelayUs(4000);
 	LCD_Reset(false);
 
 	// Segment Driver Direction Select

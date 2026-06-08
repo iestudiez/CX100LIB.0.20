@@ -35,9 +35,9 @@ void PID_Pwm1000(PID_Vars_t *pid)
 
 	if (*pid->pSetpoint == 0 || !*pid->pEnable)
 	{
-		pid->var.error = 0;
-		pid->var.accumError = 0;
-		pid->var.lastError = 0;
+		pid->priv.error = 0;
+		pid->priv.accumError = 0;
+		pid->priv.lastError = 0;
 		pid->err = 0;
 		*pid->pOutput = 0;
 		return;
@@ -54,20 +54,20 @@ void PID_Pwm1000(PID_Vars_t *pid)
 		maxAccumErr = 0;
 
 	// Variable error calculation
-	pid->var.error = *pid->pSetpoint - *pid->pFeedback;
+	pid->priv.error = *pid->pSetpoint - *pid->pFeedback;
 
 	// Cumulative error used for the calculation of the integral term
-	pid->var.accumError += pid->var.error;
+	pid->priv.accumError += pid->priv.error;
 
-	if (pid->var.accumError > maxAccumErr)
-		pid->var.accumError = maxAccumErr;
+	if (pid->priv.accumError > maxAccumErr)
+		pid->priv.accumError = maxAccumErr;
 
-	pid->var.propTerm = pid->Kp * pid->var.error;
-	pid->var.intgTerm = pid->Ki * pid->var.accumError;
-	pid->var.dervTerm = pid->Kd * (pid->var.lastError - pid->var.error);
+	pid->priv.propTerm = pid->Kp * pid->priv.error;
+	pid->priv.intgTerm = pid->Ki * pid->priv.accumError;
+	pid->priv.dervTerm = pid->Kd * (pid->priv.lastError - pid->priv.error);
 
 	// Output = proportional term + integral term + derivative term
-	output = (pid->var.propTerm + pid->var.intgTerm + pid->var.dervTerm) / 100000;
+	output = (pid->priv.propTerm + pid->priv.intgTerm + pid->priv.dervTerm) / 100000;
 
 	// Check output minimum admissible value
 	if (output < 0)
@@ -88,7 +88,7 @@ void PID_Pwm1000(PID_Vars_t *pid)
 	*pid->pOutput = (uint16_t) output;
 
 	// Save the value of the error variable for the next iteration
-	pid->var.lastError = pid->var.error;
+	pid->priv.lastError = pid->priv.error;
 
 	// Checking the limits of the variable
 	if (pid->allowedErr > PID_MAX_ALLOWED_SETPOINT_ERROR)
@@ -98,7 +98,7 @@ void PID_Pwm1000(PID_Vars_t *pid)
 	errorTolerance = (*pid->pSetpoint * pid->allowedErr) / 100;
 
 	// Increments the error variable if the setpoint value cannot be reached
-	if (abs(pid->var.error) > errorTolerance)
+	if (abs(pid->priv.error) > errorTolerance)
 		pid->err++;
 	else
 		pid->err = 0;

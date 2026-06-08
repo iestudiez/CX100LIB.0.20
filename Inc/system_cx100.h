@@ -76,7 +76,8 @@ void SYSTEM_ErrLed(bool enable);
 void SYSTEM_LcdGreen(bool enable);
 void SYSTEM_LcdRed(bool enable);
 void SYSTEM_LcdBlue(bool enable);
-void SYSTEM_Delay(uint16_t delay);
+void SYSTEM_DelayUs(uint16_t delay);
+void SYSTEM_DelayMs(uint16_t delay);
 void SYSTEM_TimerConfig(TIM_TypeDef *tim, uint8_t freqMode, uint8_t ccReg);
 
 // ----------------------------------------------------------------------------

@@ -43,7 +43,7 @@ typedef struct
 	uint8_t allowedErr;		// Allowable error of feedback with respect to the setpoint  (0-30, Max.: 30%)
 	uint32_t err;			// When the setpoint value cannot be reached this variable is incremented
 	bool *pEnable;
-	PID_PrivateVars_t var;
+	PID_PrivateVars_t priv;
 } PID_Vars_t;
 
 void PID_Pwm1000(PID_Vars_t *pid);

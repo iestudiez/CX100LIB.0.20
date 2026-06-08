@@ -352,7 +352,6 @@ void SYSTEM_Init()
 
 	// ************************************************************************
 	// * UART2 Initialization                                                 *
-	// * CX100 Compatibility: OK.											  *
 	// ************************************************************************
 
 	// PA2 UART2_RX (Alternate Function UART2 RX)
@@ -393,6 +392,10 @@ void SYSTEM_Init()
 	// -------------
 	// Enable the module in the GNSS section
 	// UART_Enable(USART2);
+
+	// ************************************************************************
+	// * UART1 Initialization                                                 *
+	// ************************************************************************
 
 	// ************************************************************************
 	// * DMA1 for USART2 Initialization										  *
@@ -809,7 +812,7 @@ void SYSTEM_LcdBlue(bool enable)
  * @param delay		Delay in micro-seconds
  * ----------------------------------------------------------------------------
  */
-void SYSTEM_Delay(uint16_t delay)
+void SYSTEM_DelayUs(uint16_t delay)
 {
 	if (delay == 0)
 		return;
@@ -829,6 +832,19 @@ void SYSTEM_Delay(uint16_t delay)
 		;
 
 	TIM_Disable(SYSTEM_DELAY_TIMER);
+}
+
+/**
+ * ----------------------------------------------------------------------------
+ * @brief 			Generates a delay with blocking code
+ * ----------------------------------------------------------------------------
+ * @param delay		Delay in milli-seconds
+ * ----------------------------------------------------------------------------
+ */
+void SYSTEM_DelayMs(uint16_t delay)
+{
+	for (uint16_t i = 0; i < delay; i++)
+		SYSTEM_DelayUs(1000);
 }
 
 // ****************************************************************************

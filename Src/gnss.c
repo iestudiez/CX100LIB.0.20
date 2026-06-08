@@ -16,6 +16,7 @@
 
 #include "gnss.h"
 #include "uart.h"
+#include "system_cx100.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -23,7 +24,6 @@
 
 // Private definitions
 // -----------------------------------------------------------------------------
-#define GNSS_ONLY_RMC_MESSAGES
 
 // Public variables
 // -----------------------------------------------------------------------------
@@ -42,12 +42,10 @@ char GNSS_Frame[UART_RX_BUFFER_SIZE];
 // -----------------------------------------------------------------------------
 void GNSS_FrameBuilder(void);
 void GNSS_RmcUpdate(void);
-void GNSS_SendCommand(char *msg);
-uint8_t GNSS_Checksum(const char *sGnssFrame);
-#ifndef GNSS_ONLY_RMC_MESSAGES
 void GNSS_VtgUpdate(void);
 void GNSS_GgaUpdate(void);
-#endif
+void GNSS_SendCommand(char *msg);
+uint8_t GNSS_Checksum(const char *sGnssFrame);
 
 /**
  * -----------------------------------------------------------------------------
@@ -61,11 +59,14 @@ void GNSS_Init(GnssRefresh_e refreshRate)
 	// Enable GNSS module
 	// ------------------
 	GNSS_Enable();
+	SYSTEM_DelayMs(100);
 
 	// Reduce output to only RMC
 	// -------------------------
 	GNSS_SendCommand("\r\n");
+	SYSTEM_DelayMs(50);
 	GNSS_SendCommand("$PMTK314,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29\r\n");
+	SYSTEM_DelayMs(50);
 
 	switch (refreshRate)
 	{
@@ -134,28 +135,6 @@ void GNSS_Update(void)
 		GNSS_RmcUpdate();
 		return;
 	}
-
-#ifndef GNSS_ONLY_RMC_MESSAGES
-
-	// Identify if it is a VTG type message and process it
-	// ---------------------------------------------------
-	compResult = strcmp(compHeader, gHeader_VTG);
-	if (compResult == 0)
-	{
-		GNSS_VtgUpdate();
-		return;
-	}
-
-	// Identify if it is a GGA type message and process it
-	// ---------------------------------------------------
-	compResult = strcmp(compHeader, gHeader_GGA);
-	if (compResult == 0)
-	{
-		GNSS_GgaUpdate();
-		return;
-	}
-
-#endif
 }
 
 /**
@@ -211,7 +190,6 @@ void GNSS_RmcUpdate(void)
 	GNSS_Rmc.mode = GNSS_Frame[i];
 }
 
-#ifndef GNSS_ONLY_RMC_MESSAGES
 /**
  * -----------------------------------------------------------------------------
  * @brief 	VTG Update
@@ -292,7 +270,6 @@ void GNSS_GgaUpdate(void)
 	satUsedStr[j] = 0x00; // termination character
 	GNSS_Vtg.satellites = (uint8_t) atoi(satUsedStr);
 }
-#endif
 
 /**
  * -----------------------------------------------------------------------------

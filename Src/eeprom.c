@@ -108,7 +108,7 @@ void EEPROM_Write(uint16_t addr, uint8_t *data, uint8_t size)
 	EEPROM_CS(false);
 
 	// 10 micro-seconds delay
-	SYSTEM_Delay(10);
+	SYSTEM_DelayUs(10);
 
 	// Write Operation
 	EEPROM_CS(true);

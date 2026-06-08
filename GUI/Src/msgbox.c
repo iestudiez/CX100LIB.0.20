@@ -19,7 +19,7 @@
 // Macros and definitions
 // ----------------------------------------------------------------------------
 #define MSGBOX_XPOS						13
-#define MSGBOX_YPOS						11
+#define MSGBOX_YPOS						13
 #define MSGBOX_WIDTH					100
 #define MSGBOX_HEIGHT					40
 #define MSGBOX_LINES_XPOS				72

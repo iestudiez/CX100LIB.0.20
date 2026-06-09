@@ -59,14 +59,14 @@ void GNSS_Init(GnssRefresh_e refreshRate)
 	// Enable GNSS module
 	// ------------------
 	GNSS_Enable();
-	SYSTEM_DelayMs(100);
+	SYSTEM_DelayMs(1000);
 
 	// Reduce output to only RMC
 	// -------------------------
 	GNSS_SendCommand("\r\n");
-	SYSTEM_DelayMs(50);
+	SYSTEM_DelayMs(1000);
 	GNSS_SendCommand("$PMTK314,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29\r\n");
-	SYSTEM_DelayMs(50);
+	SYSTEM_DelayMs(1000);
 
 	switch (refreshRate)
 	{
@@ -110,9 +110,9 @@ void GNSS_Update(void)
 
 	// Check if there is a message available in the UART buffer
 	// --------------------------------------------------------
-	if (USART2->SR & USART_SR_IDLE)
+	if (GNSS_USART_MODULE->SR & USART_SR_IDLE)
 	{
-		UART_ClearIdleFlag(USART2);
+		UART_ClearIdleFlag(GNSS_USART_MODULE);
 
 		// Clear timeout counter
 		GNSS_Timeout = 0;
@@ -391,7 +391,7 @@ uint8_t GNSS_Checksum(const char *sGnssFrame)
  */
 void GNSS_Enable(void)
 {
-	UART_Enable(UART_DEFAULT_MODULE);
+	UART_Enable(GNSS_USART_MODULE);
 }
 
 /**
@@ -401,6 +401,6 @@ void GNSS_Enable(void)
  */
 void GNSS_Disable(void)
 {
-	UART_Disable(UART_DEFAULT_MODULE);
+	UART_Disable(GNSS_USART_MODULE);
 }
 

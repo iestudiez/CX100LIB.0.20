@@ -66,6 +66,7 @@ typedef struct GnssRmcData_t
 // Public definitions
 // -----------------------------------------------------------------------------
 #define GNSS_TIMEOUT_LIMIT				(1500U)
+#define GNSS_USART_MODULE				USART2
 
 // Public variables
 // -----------------------------------------------------------------------------

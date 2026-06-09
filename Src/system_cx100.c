@@ -351,6 +351,46 @@ void SYSTEM_Init()
 	SPI_Enable(SPI2);
 
 	// ************************************************************************
+	// * UART1 Initialization                                                 *
+	// ************************************************************************
+
+	// PB7 UART1_RX (Alternate Function UART1 RX)
+	// ------------------------------------------
+	GPIO_Config_Reset(&gpioConf);
+	gpioConf.port = GPIOB;
+	gpioConf.pin = 7;
+	gpioConf.mode = AFUNCTION;
+	gpioConf.af = AF7;
+	GPIO_Init(gpioConf);
+
+	// PB6 UART1_TX (Alternate Function UART1 TX)
+	// ------------------------------------------
+	GPIO_Config_Reset(&gpioConf);
+	gpioConf.port = GPIOB;
+	gpioConf.pin = 6;
+	gpioConf.mode = AFUNCTION;
+	gpioConf.af = AF7;
+	GPIO_Init(gpioConf);
+
+	// USART Configuration
+	// -------------------
+	// UART1 Module
+	UART_Config_Reset(&uartConf);
+	uartConf.module = USART1;
+	uartConf.periph_clk = (uint32_t) RCC_APB2_CLK;
+	uartConf.baudrate = BR_9600;
+	uartConf.dir_tx = true;
+	uartConf.dir_rx = true;
+	uartConf.rxneie = false;
+	uartConf.tcie = false;
+	uartConf.idleie = false;
+	UART_Init(uartConf);
+
+	// Enable Module
+	// -------------
+	UART_Enable(USART1);
+
+	// ************************************************************************
 	// * UART2 Initialization                                                 *
 	// ************************************************************************
 
@@ -392,10 +432,6 @@ void SYSTEM_Init()
 	// -------------
 	// Enable the module in the GNSS section
 	// UART_Enable(USART2);
-
-	// ************************************************************************
-	// * UART1 Initialization                                                 *
-	// ************************************************************************
 
 	// ************************************************************************
 	// * DMA1 for USART2 Initialization										  *

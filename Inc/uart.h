@@ -56,6 +56,7 @@ typedef struct uart_s
 extern char UART_RxBuffer[UART_RX_BUFFER_SIZE];
 extern char UART_TxBuffer[UART_TX_BUFFER_SIZE];
 
+int __io_putchar(int ch);
 void UART_Init(UART_Config_t uart);
 void UART_Enable(USART_TypeDef *uart);
 void UART_Disable(USART_TypeDef *uart);

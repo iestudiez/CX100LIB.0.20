@@ -11,7 +11,6 @@
 #include "gui_utils.h"
 #include "stddef.h"
 #include "input_box.h"
-#include "gui.h"
 #include "keyboard.h"
 #include "string.h"
 #include "stdio.h"

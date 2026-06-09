@@ -13,7 +13,6 @@
 #include "stdint.h"
 #include "stdbool.h"
 #include "input_box.h"
-#include "gui.h"
 #include "stddef.h"
 
 // Pre-processor definitions and macros

@@ -59,14 +59,13 @@ void GNSS_Init(GnssRefresh_e refreshRate)
 	// Enable GNSS module
 	// ------------------
 	GNSS_Enable();
-	SYSTEM_DelayMs(1000);
 
 	// Reduce output to only RMC
 	// -------------------------
-	GNSS_SendCommand("\r\n");
-	SYSTEM_DelayMs(1000);
+
+	SYSTEM_DelayMs(100);
+
 	GNSS_SendCommand("$PMTK314,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29\r\n");
-	SYSTEM_DelayMs(1000);
 
 	switch (refreshRate)
 	{

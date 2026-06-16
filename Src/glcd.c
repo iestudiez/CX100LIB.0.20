@@ -34,8 +34,7 @@ typedef struct CharSettings_t
 
 // Private prototypes
 // -----------------------------------------------------------------------------
-TextBox_t
-GLCD_DrawChar(CharSettings_t c, const unsigned char *font);
+TextBox_t GLCD_DrawChar(CharSettings_t c, const unsigned char *font);
 
 /**
  * ----------------------------------------------------------------------------
@@ -80,8 +79,7 @@ uint8_t GLCD_TextWidth(char *string, const unsigned char *font, uint8_t spacing)
  * @return				Text box dimensions
  *  -----------------------------------------------------------------------------
  */
-TextBox_t GLCD_DrawText(const char *string, uint8_t x, uint8_t y, const unsigned char *font, uint8_t spacing,
-		bool color)
+TextBox_t GLCD_DrawText(const char *string, uint8_t x, uint8_t y, const unsigned char *font, uint8_t spacing, bool color)
 {
 	TextBox_t ret;
 	TextBox_t tmp;
@@ -513,6 +511,7 @@ void GLCD_ProgressBar(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_t va
 	GLCD_DrawBox(x1, y1, barValue + x1, y2, 2);
 }
 
+//@formatter:off
 /**
  * -----------------------------------------------------------------------------
  * @brief				Draw a line
@@ -531,10 +530,10 @@ void GLCD_DrawLine(int x1, int y1, int x2, int y2, bool color)
 	if ((x2 <= x1) || (y2 <= y1))
 		return;
 
-	int deltax = x2 - x1;    	// The difference between the x's
-	int deltay = y2 - y1;    	// The difference between the y's
-	int x = x1;                 // Start x off at the first pixel
-	int y = y1;                 // Start y off at the first pixel
+	int deltax = x2 - x1;    		// The difference between the x's
+	int deltay = y2 - y1;    		// The difference between the y's
+	int x = x1;                 	// Start x off at the first pixel
+	int y = y1;                 	// Start y off at the first pixel
 
 	if (x2 >= x1)
 	{
@@ -562,19 +561,19 @@ void GLCD_DrawLine(int x1, int y1, int x2, int y2, bool color)
 		yinc2 = -1;
 	}
 
-	if (deltax >= deltay)     // There is at least one x-value for every y-value
+	if (deltax >= deltay)     		// There is at least one x-value for every y-value
 	{
-		xinc1 = 0;           // Don't change the x when numerator >= denominator
+		xinc1 = 0;           		// Don't change the x when numerator >= denominator
 		yinc2 = 0;              	// Don't change the y for every iteration
 		den = deltax;
 		num = deltax / 2;
 		numadd = deltay;
 		numpixels = deltax;     	// There are more x-values than y-values
 	}
-	else                    // There is at least one y-value for every x-value
+	else                    		// There is at least one y-value for every x-value
 	{
 		xinc2 = 0;              	// Don't change the x for every iteration
-		yinc1 = 0;           // Don't change the y when numerator >= denominator
+		yinc1 = 0;           		// Don't change the y when numerator >= denominator
 		den = deltay;
 		num = deltay / 2;
 		numadd = deltax;
@@ -584,7 +583,7 @@ void GLCD_DrawLine(int x1, int y1, int x2, int y2, bool color)
 	for (curpixel = 0; curpixel <= numpixels; curpixel++)
 	{
 		LCD_Pixel(x, y, color);    	// Draw the current pixel
-		num += numadd;      // Increase the numerator by the top of the fraction
+		num += numadd;      		// Increase the numerator by the top of the fraction
 		if (num >= den)         	// Check if numerator >= denominator
 		{
 			num -= den;           	// Calculate the new numerator value
@@ -595,3 +594,4 @@ void GLCD_DrawLine(int x1, int y1, int x2, int y2, bool color)
 		y += yinc2;             	// Change the y as appropriate
 	}
 }
+//@formatter:on

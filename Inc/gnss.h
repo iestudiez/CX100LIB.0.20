@@ -20,14 +20,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-typedef enum GnssRefresh_e
-{
-	GNSS_REFRESH_RATE_1HZ = 1,
-	GNSS_REFRESH_RATE_2HZ = 2,
-	GNSS_REFRESH_RATE_5HZ = 3,
-	GNSS_REFRESH_RATE_10HZ = 4
-} GnssRefresh_e;
-
 typedef enum GnssVtgMode_e
 {
 	GNSS_VTG_MODE_A = 65, // Autonomous
@@ -61,10 +53,17 @@ typedef struct GnssRmcData_t
 	uint32_t time;
 	uint32_t date;
 	GnssRmcMode_e mode;
-}GnssRmcData_t;
+} GnssRmcData_t;
 
 // Public definitions
 // -----------------------------------------------------------------------------
+#define	GNSS_OUTPUT_RATE_1HZ 			("$PMTK220,1000*1F\r\n")
+#define	GNSS_OUTPUT_RATE_2HZ 			("$PMTK220,500*2B\r\n")
+#define	GNSS_OUTPUT_RATE_5HZ 			("$PMTK220,200*2C\r\n")
+#define	GNSS_OUTPUT_RATE_10HZ 			("$PMTK220,100*2F\r\n")
+#define GNSS_OUTPUT_RMC_ONLY			("$PMTK314,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29\r\n")
+#define GNSS_OUTPT_RATE					GNSS_OUTPUT_RATE_2HZ
+
 #define GNSS_TIMEOUT_LIMIT				(1500U)
 #define GNSS_USART_MODULE				USART2
 
@@ -76,7 +75,7 @@ extern uint32_t GNSS_Timeout;
 
 // Public functions
 // -----------------------------------------------------------------------------
-void GNSS_Init(GnssRefresh_e refreshRate);
+void GNSS_Init(void);
 void GNSS_Update(void);
 void GNSS_Disable(void);
 void GNSS_Enable(void);

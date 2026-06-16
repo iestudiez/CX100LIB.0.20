@@ -18,7 +18,6 @@
 #include "spi.h"
 #include "system_cx100.h"
 
-// -----------------------------------------------------------------------------
 // Local Definitions
 // -----------------------------------------------------------------------------
 #define INA239_WRITE_OP			(0U << 0U)
@@ -31,11 +30,9 @@
 #define ADC_CONFIG_AVG			(0x3 << 0U)		// ADC averaging count
 #define SHUNT_CAL				(4096U)			// Shunt calibration value
 
-// -----------------------------------------------------------------------------
 // Public variables
 // -----------------------------------------------------------------------------
 
-// -----------------------------------------------------------------------------
 // Private variables
 // -----------------------------------------------------------------------------
 uint8_t ina239Cmd[3];
@@ -72,7 +69,8 @@ uint8_t INA239_Init(void)
 
 	// ADC Configuration register
 	wrData = 0;
-	wrData |= ADC_CONFIG_MODE | ADC_CONFIG_VBUSCT | ADC_CONFIG_VSHCT | ADC_CONFIG_VTCT | ADC_CONFIG_AVG;
+	wrData |= ADC_CONFIG_MODE | ADC_CONFIG_VBUSCT | ADC_CONFIG_VSHCT
+			| ADC_CONFIG_VTCT | ADC_CONFIG_AVG;
 
 	ina239Cmd[0] = (INA239_ADC_CONFIG);
 	ina239Cmd[1] = (uint8_t) (wrData >> 8U);

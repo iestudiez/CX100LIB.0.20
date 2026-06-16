@@ -17,6 +17,7 @@
 #include "gnss.h"
 #include "uart.h"
 #include "system_cx100.h"
+#include "pwrboard.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -54,37 +55,23 @@ uint8_t GNSS_Checksum(const char *sGnssFrame);
  * @param refreshRate
  * -----------------------------------------------------------------------------
  */
-void GNSS_Init(GnssRefresh_e refreshRate)
+void GNSS_Init(void)
 {
+	// Enable power supply for external sensors
+	// ----------------------------------------
+	PowerBoard.SensorSupply.External = PWR_ON;
+	PWRBOARD_Update();
+
 	// Enable GNSS module
 	// ------------------
 	GNSS_Enable();
 
 	// Reduce output to only RMC
 	// -------------------------
-
-	SYSTEM_DelayMs(100);
-
-	GNSS_SendCommand("$PMTK314,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29\r\n");
-
-	switch (refreshRate)
-	{
-	case GNSS_REFRESH_RATE_1HZ:
-		GNSS_SendCommand("$PMTK220,1000*1F\r\n");
-		break;
-
-	case GNSS_REFRESH_RATE_2HZ:
-		GNSS_SendCommand("$PMTK220,500*2B\r\n");
-		break;
-
-	case GNSS_REFRESH_RATE_5HZ:
-		GNSS_SendCommand("$PMTK220,200*2C\r\n");
-		break;
-
-	case GNSS_REFRESH_RATE_10HZ:
-		GNSS_SendCommand("$PMTK220,100*2F\r\n");
-		break;
-	}
+	SYSTEM_DelayMs(500);
+	GNSS_SendCommand(GNSS_OUTPUT_RMC_ONLY);
+	SYSTEM_DelayMs(50);
+	GNSS_SendCommand(GNSS_OUTPT_RATE);
 }
 
 /**
@@ -94,13 +81,6 @@ void GNSS_Init(GnssRefresh_e refreshRate)
  */
 void GNSS_Update(void)
 {
-	// -------------------------------------------------------------------------
-	// GNSS_FrameBuilder(), GNSS_VtgUpdate() and GNSS_GgaUpdate() functions are
-	// executed only once for each time the GNSS_Update() task is called.
-	// To ensure the execution of the GNSS_Update() task within one millisecond,
-	// which is the update period of the task scheduler
-	// -------------------------------------------------------------------------
-
 	static char compHeader[7];
 	uint8_t compResult;
 

@@ -21,13 +21,11 @@
 #define MCP23S17_WRITE_OP			0x40
 #define MCP23S17_READ_OP			0x41
 
-// ============================================================================
 // Public variables
-// ============================================================================
+// ----------------------------------------------------------------------------
 
-// ============================================================================
 // Private variables
-// ============================================================================
+// ----------------------------------------------------------------------------
 uint8_t mcpCmd[3];
 
 /**
@@ -60,26 +58,17 @@ uint8_t MCP23S17_Init(void)
 	mcpCmd[1] = IODIRA_ADDR;
 	mcpCmd[2] = MCP23S17_IODIRA;
 
-//	// Exit reset mode
-//	GPIO_Write(MCP23S17_RST_GPIO, MCP23S17_RST_PIN, 1);
-
 	// Enable CS pin
 	GPIO_Write(MCP23S17_CS_GPIO, MCP23S17_CS_PIN, 0);
 
 	// Send Configuration Command
 	SPI_Transmit(MCP23S17_SPI, mcpCmd, 3);
 
-//	// Disable CS pin
-//	GPIO_Write(MCP23S17_CS_GPIO, MCP23S17_CS_PIN, 1);
-
 	// Configure MCP23S17 GPIOB port
 	// -----------------------------
 	mcpCmd[0] = MCP23S17_WRITE_OP;
 	mcpCmd[1] = IODIRB_ADDR;
 	mcpCmd[2] = MCP23S17_IODIRB;
-
-//	// Enable CS pin
-//	GPIO_Write(MCP23S17_CS_GPIO, MCP23S17_CS_PIN, 0);
 
 	// Send Configuration Command
 	SPI_Transmit(MCP23S17_SPI, mcpCmd, 3);

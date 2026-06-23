@@ -503,7 +503,7 @@ void GLCD_ProgressBar(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_t va
 	if (x2 >= LCD_SCREEN_WIDTH)
 		x2 = LCD_SCREEN_WIDTH;
 
-	len = (x2 - x1) + 1;
+	len = (x2 - x1);
 
 	// Calculating the progress bar percentage
 	barValue = (uint8_t) ((uint32_t) ((value * len) / 100));

@@ -25,27 +25,37 @@
 
 // Private definitions
 // -----------------------------------------------------------------------------
+#define RMC_POS_TIME				(1U)
+#define RMC_POS_STATUS				(2U)
+#define RMC_POS_LATITUDE			(3U)
+#define RMC_POS_LONGITUDE			(5U)
+#define RMC_POS_SPEED				(7U)
+#define RMC_POS_DATE				(9U)
+#define RMC_POS_MODE				(12U)
+
+#define RMC_STR_BUFFER_SIZE			(11)
+
+#define RMC_STR_HEADER_1			"$GPRMC"
+#define RMC_STR_HEADER_2			"$GNRMC"
 
 // Public variables
 // -----------------------------------------------------------------------------
-GnssVtgData_t GNSS_Vtg;
 GnssRmcData_t GNSS_Rmc;
-uint32_t GNSS_Timeout;
+GnssStatus_t GNSS_Status;
 
 // Private variables
 // -----------------------------------------------------------------------------
-const char *gHeader_VTG = "$GPVTG";
-const char *gHeader_GGA = "$GPGGA";
-const char *gHeader_RMC = "$GNRMC";
 char GNSS_Frame[UART_RX_BUFFER_SIZE];
+char gnss_Buffer[RMC_STR_BUFFER_SIZE];
 
 // Private functions
 // -----------------------------------------------------------------------------
 void GNSS_FrameBuilder(void);
-void GNSS_RmcUpdate(void);
-void GNSS_VtgUpdate(void);
-void GNSS_GgaUpdate(void);
+void GNSS_RmcParser(void);
 void GNSS_SendCommand(char *msg);
+void extractToken(char *const pString);
+
+uint8_t findTokenIdx(uint8_t tokenPos);
 uint8_t GNSS_Checksum(const char *sGnssFrame);
 
 /**
@@ -81,173 +91,42 @@ void GNSS_Init(void)
  */
 void GNSS_Update(void)
 {
-	static char compHeader[7];
-	uint8_t compResult;
+	static bool runParser;
 
 	// Increment timeout counter
-	GNSS_Timeout++;
+	GNSS_Status.rxCounter++;
 
 	// Check if there is a message available in the UART buffer
-	// --------------------------------------------------------
 	if (GNSS_USART_MODULE->SR & USART_SR_IDLE)
 	{
 		UART_ClearIdleFlag(GNSS_USART_MODULE);
 
-		// Clear timeout counter
-		GNSS_Timeout = 0;
+		// Clear reception counter
+		GNSS_Status.rxCounter = 0;
+		GNSS_Status.rxSerialOk = true;
 
 		// Build the GNSS_Frame string
 		GNSS_FrameBuilder();
 
-		// Store header in a comparison variable
-		strncpy(compHeader, GNSS_Frame, 6);
-		compHeader[6] = 0;
-
+		runParser = true;
 		return;
 	}
 
-	// Identify if it is a RMC type message and process it
-	// ---------------------------------------------------
-	compResult = strcmp(compHeader, gHeader_RMC);
-	if (compResult == 0)
+	// Check Serial Reception
+	if (GNSS_Status.rxCounter >= GNSS_TIMEOUT)
 	{
-		GNSS_RmcUpdate();
+		GNSS_Status.rxCounter = GNSS_TIMEOUT;
+		GNSS_Status.rxSerialOk = false;
+		GNSS_RmcReset();
 		return;
 	}
-}
 
-/**
- * -----------------------------------------------------------------------------
- * @brief 	RMC Update
- * -----------------------------------------------------------------------------
- */
-void GNSS_RmcUpdate(void)
-{
-	char speedStr[8];
-	uint16_t speedKnot;
-	uint8_t i = 0;
-	uint8_t j = 0;
-	uint8_t charCnt = 0;
-
-	// Search for the beginning of the speed substring
-	// -----------------------------------------------
-	while (charCnt < 7)
+	// Run RMC parser
+	if (runParser)
 	{
-		if (GNSS_Frame[i] == ',')
-			charCnt++;
-		i++;
+		GNSS_RmcParser();
+		runParser = false;
 	}
-
-	// Extract speed substring
-	// -----------------------
-	while (GNSS_Frame[i] != ',')
-	{
-		if (GNSS_Frame[i] != '.') // discard decimal point
-		{
-			speedStr[j] = GNSS_Frame[i];
-			i++;
-			j++;
-		}
-		else
-			i++;
-	}
-
-	// Conversion
-	// ----------
-	speedStr[j] = 0x00; // termination character
-	speedKnot = (uint16_t) atoi(speedStr);
-	GNSS_Rmc.speed = (uint16_t) ((uint32_t) (speedKnot * 185 / 100));
-
-	// Extract RMC Mode
-	// ----------------
-	while (charCnt < 12)
-	{
-		if (GNSS_Frame[i] == ',')
-			charCnt++;
-		i++;
-	}
-	GNSS_Rmc.mode = GNSS_Frame[i];
-}
-
-/**
- * -----------------------------------------------------------------------------
- * @brief 	VTG Update
- * -----------------------------------------------------------------------------
- */
-void GNSS_VtgUpdate(void)
-{
-	char speedStr[8];
-	uint8_t i = 0;
-	uint8_t j = 0;
-	uint8_t charCnt = 0;
-
-	// Search for the beginning of the speed substring
-	// -----------------------------------------------
-	while (charCnt < 7)
-	{
-		if (GNSS_Frame[i] == ',')
-			charCnt++;
-		i++;
-	}
-
-	// Extract speed substring
-	// -----------------------
-	while (GNSS_Frame[i] != ',')
-	{
-		if (GNSS_Frame[i] != '.') // discard decimal point
-		{
-			speedStr[j] = GNSS_Frame[i];
-			i++;
-			j++;
-		}
-		else
-			i++;
-	}
-
-	// Conversion
-	// ----------
-	speedStr[j] = 0x00; // termination character
-	GNSS_Vtg.speed = (uint16_t) atoi(speedStr);
-
-	// Extract VTG Mode
-	// ----------------
-	GNSS_Vtg.mode = GNSS_Frame[i + 3];
-}
-
-/**
- * -----------------------------------------------------------------------------
- * @brief 	GGA Update
- * -----------------------------------------------------------------------------
- */
-void GNSS_GgaUpdate(void)
-{
-	char satUsedStr[8];
-	uint8_t charCnt = 0;
-	uint8_t i = 0;
-	uint8_t j = 0;
-
-	// Search for the beginning of the satellites used substring
-	// ---------------------------------------------------------
-	while (charCnt < 6)
-	{
-		if (GNSS_Frame[i] == ',')
-			charCnt++;
-		i++;
-	}
-
-	// Extract satellites used substring
-	// ---------------------------------
-	while (GNSS_Frame[i] != ',')
-	{
-		satUsedStr[j] = GNSS_Frame[i];
-		i++;
-		j++;
-	}
-
-	// Conversion
-	// ----------
-	satUsedStr[j] = 0x00; // termination character
-	GNSS_Vtg.satellites = (uint8_t) atoi(satUsedStr);
 }
 
 /**
@@ -262,7 +141,7 @@ void GNSS_FrameBuilder(void)
 	uint8_t i;
 	uint8_t nReceivedChars;
 
-	// Set position pointer
+// Set position pointer
 	pos = UART_RX_BUFFER_SIZE - DMA1_Stream5->NDTR;
 
 	if (pos > oldPos)
@@ -323,6 +202,101 @@ void GNSS_FrameBuilder(void)
 
 /**
  * -----------------------------------------------------------------------------
+ * @brief 	RMC Parser
+ * -----------------------------------------------------------------------------
+ */
+void GNSS_RmcParser(void)
+{
+	uint32_t intValue;
+	uint8_t idx = 0;
+	bool chkHeader = false;
+
+	// Check if is a RMC message
+	// ------------------------------------------------------------------------
+	strncpy(gnss_Buffer, GNSS_Frame, 6);
+	gnss_Buffer[6] = '\0';
+
+	if (strcmp(gnss_Buffer, RMC_STR_HEADER_1) == 0)
+		chkHeader = true;
+
+	if (strcmp(gnss_Buffer, RMC_STR_HEADER_2) == 0)
+		chkHeader = true;
+
+	if (chkHeader == false)
+	{
+		GNSS_RmcReset();
+		return;
+	}
+
+	// RMC Time Section
+	// ------------------------------------------------------------------------
+	idx = findTokenIdx(RMC_POS_TIME);
+
+	// Extract time substring
+	extractToken(&GNSS_Frame[idx]);
+
+	// Conversion
+	GNSS_Rmc.time = (uint32_t) atoi(gnss_Buffer);
+
+	// RMC Status Section
+	// ------------------------------------------------------------------------
+	idx = findTokenIdx(RMC_POS_STATUS);
+
+	// Conversion
+	if (GNSS_Frame[idx] == 'A')
+		GNSS_Rmc.status = true;
+	else
+		GNSS_Rmc.status = false;
+
+	// RMC Latitude Section
+	// ------------------------------------------------------------------------
+	idx = findTokenIdx(RMC_POS_LATITUDE);
+
+	// Extract latitude substring
+	extractToken(&GNSS_Frame[idx]);
+
+	// Conversion
+	GNSS_Rmc.latitude = (uint32_t) atoi(gnss_Buffer);
+
+	// RMC Longitude Section
+	// ------------------------------------------------------------------------
+	idx = findTokenIdx(RMC_POS_LONGITUDE);
+
+	// Extract longitude substring
+	extractToken(&GNSS_Frame[idx]);
+
+	// Conversion
+	GNSS_Rmc.longitude = (uint32_t) atoi(gnss_Buffer);
+
+	// RMC Speed Section
+	// ------------------------------------------------------------------------
+	idx = findTokenIdx(RMC_POS_SPEED);
+
+	// Extract speed substring
+	extractToken(&GNSS_Frame[idx]);
+
+	// Conversion
+	intValue = (uint32_t) atoi(gnss_Buffer);
+	GNSS_Rmc.speed = (uint16_t) ((uint32_t) (intValue * 185 / 100));
+
+	// RMC Date Section
+	// ------------------------------------------------------------------------
+	idx = findTokenIdx(RMC_POS_DATE);
+
+	// Extract date substring
+	extractToken(&GNSS_Frame[idx]);
+
+	// Conversion
+	GNSS_Rmc.date = (uint32_t) atoi(gnss_Buffer);
+
+	// RMC Mode Section
+	// ------------------------------------------------------------------------
+	idx = findTokenIdx(RMC_POS_MODE);
+	GNSS_Rmc.mode = GNSS_Frame[idx];
+}
+
+/**
+ * -----------------------------------------------------------------------------
  * @brief 			Send a GNSS command
  * -----------------------------------------------------------------------------
  * @param msg		Message to send
@@ -346,8 +320,8 @@ void GNSS_SendCommand(char *msg)
  * -----------------------------------------------------------------------------
  * @brief 				Perform the GNSS frame checksum
  * -----------------------------------------------------------------------------
- * @param gnssFrame
- * @return
+ * @param gnssFrame		Pointer to GNSS frame
+ * @return				Checksum
  * -----------------------------------------------------------------------------
  */
 uint8_t GNSS_Checksum(const char *sGnssFrame)
@@ -383,3 +357,73 @@ void GNSS_Disable(void)
 	UART_Disable(GNSS_USART_MODULE);
 }
 
+/**
+ * -----------------------------------------------------------------------------
+ * @brief 				Get an integer from a string of characters
+ * -----------------------------------------------------------------------------
+ * @param pString		Pointer to a string with a float
+ * -----------------------------------------------------------------------------
+ */
+void extractToken(char *const pString)
+{
+	char *pFloat = pString;
+	char *pInt = gnss_Buffer;
+	uint8_t limit = 0;
+
+	// Scan the string
+	while ((*pFloat != ',') && (limit < RMC_STR_BUFFER_SIZE))
+	{
+		// Buffer boundary check
+		limit++;
+
+		// Search for dot character
+		if (*pFloat != '.')
+		{
+			*pInt = *pFloat;
+			pFloat++;
+			pInt++;
+		}
+		else
+			pFloat++;
+	}
+	*pInt = '\0'; // Add termination character
+}
+
+/**
+ * -----------------------------------------------------------------------------
+ * @brief 				Finding the array index of a token
+ * -----------------------------------------------------------------------------
+ * @param tokenPos		Position of the requested token
+ * @return				Array index of the token found
+ *  -----------------------------------------------------------------------------
+ */
+uint8_t findTokenIdx(uint8_t tokenPos)
+{
+	uint8_t idx = 0;
+	uint8_t cnt = 0;
+
+	while ((cnt < tokenPos) && (idx < UART_RX_BUFFER_SIZE))
+	{
+		if (GNSS_Frame[idx] == ',')
+			cnt++;
+		idx++;
+	}
+
+	return idx;
+}
+
+/**
+ * -----------------------------------------------------------------------------
+ * @brief
+ * -----------------------------------------------------------------------------
+ */
+void GNSS_RmcReset(void)
+{
+	GNSS_Rmc.status = false;
+	GNSS_Rmc.date = 0;
+	GNSS_Rmc.latitude = 0;
+	GNSS_Rmc.longitude = 0;
+	GNSS_Rmc.time = 0;
+	GNSS_Rmc.speed = 0;
+	GNSS_Rmc.mode = GNSS_RMC_MODE_N;
+}

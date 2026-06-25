@@ -236,7 +236,7 @@ void GNSS_RmcParser(void)
 	extractToken(&GNSS_Frame[idx]);
 
 	// Conversion
-	GNSS_Rmc.time = (uint32_t) atoi(gnss_Buffer);
+	GNSS_Rmc.time = (uint32_t) (atoi(gnss_Buffer) / 1000);
 
 	// RMC Status Section
 	// ------------------------------------------------------------------------

@@ -27,7 +27,7 @@ void (*pidCallback)();
  * @param pid	Pointer to structure with PID variables
  * ----------------------------------------------------------------------------
  */
-void PID_Pwm1000(PID_Vars_t *pid)
+void PID_Pwm1000(PID1000_t *pid)
 {
 	int32_t output;
 	int32_t maxAccumErr;

@@ -30,7 +30,7 @@ typedef struct
 	int32_t dervTerm;
 } PID_PrivateVars_t;
 
-typedef struct
+typedef struct PID1000_t
 {
 	uint32_t *pSetpoint;
 	uint32_t *pFeedback;
@@ -44,9 +44,9 @@ typedef struct
 	uint32_t err;			// When the setpoint value cannot be reached this variable is incremented
 	bool *pEnable;
 	PID_PrivateVars_t priv;
-} PID_Vars_t;
+} PID1000_t;
 
-void PID_Pwm1000(PID_Vars_t *pid);
+void PID_Pwm1000(PID1000_t *pid);
 void PID_Callback();
 void PID_SetCallback(void (*user_api)());
 
